@@ -1,16 +1,23 @@
-// importer/src/importService.js
 const fs = require('fs');
 const path = require('path');
-const knexConfig = require('./knexfile').development;
-const knex = require('knex')(knexConfig);
+const knex = require('knex');
 
-// JSONObserver module
+const db = knex({
+  client: 'pg',
+  connection: {
+    host: 'bl-db',
+    user: 'sd',
+    password: 'sd',
+    database: 'sd'
+  },
+});
+
 const JSONObserver = {
     list: function() {
         console.log("Listing all available JSON files!");
         try {
             const files = fs.readdirSync("/data");
-            files.filter(file => file.endsWith(".json")).forEach(this.processFile);
+            files.filter(file => file.endsWith(".json")).forEach(this.processFile.bind(this));
         } catch (error) {
             console.log(`Error accessing /data: ${error}`);
         }
@@ -20,7 +27,7 @@ const JSONObserver = {
         console.log(`Processing file: ${fileName}`);
         const filePath = path.join("/data", fileName);
         const content = fs.readFileSync(filePath, 'utf8');
-        JSONObserver.parse(content);
+        this.parse(content);
     },
 
     parse: function(content) {
@@ -28,7 +35,7 @@ const JSONObserver = {
         try {
             const data = JSON.parse(content);
             data.forEach(async item => {
-                await JSONObserver.insertData(item);
+                await this.insertData(item);
             });
 
         } catch (err) {
@@ -45,7 +52,7 @@ const JSONObserver = {
                 state, title, title_long, website
             } = item;
 
-            const senatorId = await knex('senators').insert({
+            const [senator] = await db('Senator').insert({
                 caucus, current, description, district, enddate, leadership_title, party,
                 bioguideid: person.bioguideid, birthday: person.birthday, cspanid: person.cspanid,
                 firstname: person.firstname, gender: person.gender, lastname: person.lastname,
@@ -55,14 +62,16 @@ const JSONObserver = {
                 state, title, title_long, website, created_by: 'importer', created_at: new Date(), updated_at: new Date()
             }).returning('id');
 
+            const senatorId = senator.id;
+
             for (const congress_number of congress_numbers) {
-                await knex('congress_numbers').insert({
-                    senator_id: senatorId[0], congress_number, created_by: 'importer', created_at: new Date(), updated_at: new Date()
+                await db('CongressNumber').insert({
+                    senatorId, congress_number, created_by: 'importer', created_at: new Date(), updated_at: new Date()
                 });
             }
 
-            await knex('extra').insert({
-                senator_id: senatorId[0], address: extra.address, contact_form: extra.contact_form, office: extra.office,
+            await db('Extra').insert({
+                senatorId, address: extra.address, contact_form: extra.contact_form, office: extra.office,
                 rss_url: extra.rss_url, created_by: 'importer', created_at: new Date(), updated_at: new Date()
             });
 
@@ -77,8 +86,6 @@ const JSONObserver = {
 const ImporterApplication = {
     start: function() {
         JSONObserver.list();
-
-        // Start a minimal supervision tree (Simulated as there's no real equivalent in Node.js)
         console.log("Application started");
     }
 };
