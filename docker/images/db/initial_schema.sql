@@ -9,6 +9,4 @@ CREATE TABLE users (
 );
 
 -- Inserção de dados na tabela users
-INSERT INTO users (email, password, role) VALUES ('admin@example.com', 'hashed_password', 'admin');
-INSERT INTO users (email, password, role) VALUES ('viewer@example.com', 'hashed_password', 'view');
-INSERT INTO users (email, password, role) VALUES ('editor@example.com', 'hashed_password', 'edit');
+INSERT INTO users (email, password, role) VALUES ('admin@admin.com', '$2a$10$26DqlVIVfBDxxtWCqhykTOo7yD3Dy2NhlgkTXres3BvqHHKF7fcsi', 'admin');

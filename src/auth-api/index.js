@@ -1,19 +1,139 @@
+require('dotenv').config(); // Carregar variáveis de ambiente do arquivo .env
+
 const express = require('express');
 const cors = require('cors');
 const knexConfig = require('./knexfile').db;
 const knex = require('knex')(knexConfig);
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 
 app.use(cors());
+app.use(express.json());
 
-app.get('/', async (req, res) => {
+const generateToken = (user) => {
+    console.log('Generating token for user:', user); // Adicionar log para verificar o usuário
+    return jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
+        expiresIn: '1h'
+    });
+};
+
+// Middleware para verificar token JWT
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) {
+        console.log('No token provided');
+        return res.sendStatus(401);
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) {
+            console.log('Token verification failed:', err);
+            return res.sendStatus(403);
+        }
+        req.user = user;
+        console.log('Authenticated user:', user); // Adicionar log para verificar o usuário autenticado
+        next();
+    });
+};
+
+// Middleware para verificar se o usuário é administrador
+const isAdmin = (req, res, next) => {
+    console.log('Checking if user is admin:', req.user); // Adicionar log para verificar o usuário
+    if (req.user.role !== 'admin') {
+        console.log('User is not admin:', req.user);
+        return res.status(403).json({ error: 'Access denied: Admins only' });
+    }
+    next();
+};
+
+app.post('/register', authenticateToken, isAdmin, async (req, res) => {
     try {
-        const teachers = await knex.select('*').from('teachers');
-        res.json(teachers);
+        const { email, password, role } = req.body;
+
+        // Verificar se o usuário já existe
+        const existingUser = await knex('users').where({ email }).first();
+        if (existingUser) {
+            return res.status(400).json({ error: 'User already exists' });
+        }
+
+        // Encriptação da password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Inserir o novo usuário
+        const [newUser] = await knex('users').insert({
+            email,
+            password: hashedPassword,
+            role
+        }).returning('*');
+
+        res.status(201).json(newUser);
     } catch (error) {
         console.error(error);
-        res.status(500).send('Error retrieving data');
+        res.status(500).send('Error registering user');
+    }
+});
+
+// Rota de login
+app.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Verificar se o user existe
+        const user = await knex('users').where({ email }).first();
+        if (!user) {
+            return res.status(400).json({ error: 'Invalid email or password' });
+        }
+
+        // Verificar a senha
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+            return res.status(400).json({ error: 'Invalid email or password' });
+        }
+
+        // Gera o token JWT
+        const token = generateToken(user);
+
+        // Retornar o token JWT e os dados do usuário
+        res.json({ token, user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error logging in');
+    }
+});
+
+// Rota protegida para verificar sessão
+app.get('/session', authenticateToken, (req, res) => {
+    res.json({ user: req.user });
+});
+
+// Nova rota para administradores registrarem usuários com qualquer função
+app.post('/registeradmin', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const { email, password, role } = req.body;
+
+        // Verificar se o usuário já existe
+        const existingUser = await knex('users').where({ email }).first();
+        if (existingUser) {
+            return res.status(400).json({ error: 'User already exists' });
+        }
+
+        // Encriptação da password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Inserir o novo usuário
+        const [newUser] = await knex('users').insert({
+            email,
+            password: hashedPassword,
+            role
+        }).returning('*');
+
+        res.status(201).json(newUser);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error registering user');
     }
 });
 

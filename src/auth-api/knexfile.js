@@ -2,11 +2,11 @@ module.exports = {
     db: {
         client: 'pg',
         connection: {
-            host: 'localhost',
+            host: 'auth-db',
             user: 'sd',
             password: 'sd',
             database: 'sd',
-            port:'15432'
+            port:'5432'
         },
         migrations: {
             tableName: 'knex_migrations',
