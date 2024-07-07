@@ -1,34 +1,7 @@
-import { IsString, IsBoolean, IsOptional, IsDate, IsInt } from 'class-validator';
+import { IsString, IsBoolean, IsOptional, IsDate, IsInt, ValidateNested, IsArray } from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class CreateSenatorDto {
-  @IsOptional()
-  @IsString()
-  caucus?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  current?: boolean;
-
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @IsOptional()
-  @IsString()
-  district?: string;
-
-  @IsOptional()
-  @IsDate()
-  enddate?: Date;
-
-  @IsOptional()
-  @IsString()
-  leadership_title?: string;
-
-  @IsOptional()
-  @IsString()
-  party?: string;
-
+class PersonDto {
   @IsOptional()
   @IsString()
   bioguideid?: string;
@@ -88,6 +61,62 @@ export class CreateSenatorDto {
   @IsOptional()
   @IsString()
   youtubeid?: string;
+}
+
+class ExtraDto {
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  contact_form?: string;
+
+  @IsOptional()
+  @IsString()
+  office?: string;
+
+  @IsOptional()
+  @IsString()
+  rss_url?: string;
+}
+
+export class CreateSenatorDto {
+  @IsOptional()
+  @IsString()
+  caucus?: string;
+
+  @IsArray()
+  @IsInt({ each: true })
+  congress_numbers: number[];
+
+  @IsOptional()
+  @IsBoolean()
+  current?: boolean;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  district?: string;
+
+  @IsOptional()
+  @IsDate()
+  enddate?: Date;
+
+  @IsOptional()
+  @IsString()
+  leadership_title?: string;
+
+  @IsOptional()
+  @IsString()
+  party?: string;
+
+  @ValidateNested()
+  @Type(() => PersonDto)
+  person: PersonDto;
 
   @IsOptional()
   @IsString()
@@ -125,7 +154,7 @@ export class CreateSenatorDto {
   @IsString()
   website?: string;
 
-  @IsOptional()
-  @IsString()
-  created_by?: string;
+  @ValidateNested()
+  @Type(() => ExtraDto)
+  extra: ExtraDto;
 }

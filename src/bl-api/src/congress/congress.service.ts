@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma, CongressNumber } from '@prisma/client';
 import { CreateCongressDto } from './dto/create-congress.dto';
 

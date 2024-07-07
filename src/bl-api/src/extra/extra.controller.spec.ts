@@ -1,18 +1,43 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ExtraController } from './extra.controller';
+import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Req, ForbiddenException } from '@nestjs/common';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { ExtraService } from './extra.service';
+import { Prisma, Extra } from '@prisma/client';
+import { CreateExtraDto } from './dto/create-extra.dto';
 
-describe('ExtraController', () => {
-  let controller: ExtraController;
+@Controller('extra')
+export class ExtraController {
+  constructor(private readonly extraService: ExtraService) {}
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [ExtraController],
-    }).compile();
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async getExtras(): Promise<Extra[]> {
+    return this.extraService.findAll();
+  }
 
-    controller = module.get<ExtraController>(ExtraController);
-  });
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  async createExtra(@Body() dto: CreateExtraDto, @Req() req): Promise<Extra> {
+    if (req.user.role !== 'admin' && req.user.role !== 'edit') {
+      throw new ForbiddenException('Access denied');
+    }
+    return this.extraService.createWithSenatorId(dto);
+  }
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
+  @UseGuards(JwtAuthGuard)
+  @Put(':id')
+  async updateExtra(@Param('id') id: string, @Body() data: Prisma.ExtraUpdateInput, @Req() req): Promise<Extra> {
+    if (req.user.role !== 'admin' && req.user.role !== 'edit') {
+      throw new ForbiddenException('Access denied');
+    }
+    return this.extraService.update(Number(id), data);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deleteExtra(@Param('id') id: string, @Req() req): Promise<Extra> {
+    if (req.user.role !== 'admin' && req.user.role !== 'edit') {
+      throw new ForbiddenException('Access denied');
+    }
+    return this.extraService.delete(Number(id));
+  }
+}

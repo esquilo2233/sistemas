@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Req, ForbiddenException } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CongressService } from './congress.service';
 import { Prisma, CongressNumber } from '@prisma/client';
@@ -16,19 +16,28 @@ export class CongressController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async createCongressNumber(@Body() dto: CreateCongressDto): Promise<CongressNumber> {
+  async createCongressNumber(@Body() dto: CreateCongressDto, @Req() req): Promise<CongressNumber> {
+    if (req.user.role !== 'admin' && req.user.role !== 'edit') {
+      throw new ForbiddenException('Access denied');
+    }
     return this.congressService.createWithSenatorId(dto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
-  async updateCongressNumber(@Param('id') id: string, @Body() data: Prisma.CongressNumberUpdateInput): Promise<CongressNumber> {
+  async updateCongressNumber(@Param('id') id: string, @Body() data: Prisma.CongressNumberUpdateInput, @Req() req): Promise<CongressNumber> {
+    if (req.user.role !== 'admin' && req.user.role !== 'edit') {
+      throw new ForbiddenException('Access denied');
+    }
     return this.congressService.update(Number(id), data);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async deleteCongressNumber(@Param('id') id: string): Promise<CongressNumber> {
+  async deleteCongressNumber(@Param('id') id: string, @Req() req): Promise<CongressNumber> {
+    if (req.user.role !== 'admin' && req.user.role !== 'edit') {
+      throw new ForbiddenException('Access denied');
+    }
     return this.congressService.delete(Number(id));
   }
 }

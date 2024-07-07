@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Req, ForbiddenException } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { SenatorService } from './senator.service';
-import { Prisma, Senator } from '@prisma/client';
+import { Senator, Prisma } from '@prisma/client';
 import { CreateSenatorDto } from './dto/create-senator.dto';
+import { Request } from 'express';
 
-@Controller('senators')
+@Controller('senator')
 export class SenatorController {
   constructor(private readonly senatorService: SenatorService) {}
 
@@ -16,19 +17,28 @@ export class SenatorController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async createSenator(@Body() data: CreateSenatorDto): Promise<Senator> {
+  async createSenator(@Body() data: CreateSenatorDto, @Req() req: Request): Promise<Senator> {
+    if (req.user?.role !== 'admin' && req.user?.role !== 'edit') {
+      throw new ForbiddenException('Access denied');
+    }
     return this.senatorService.create(data);
   }
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
-  async updateSenator(@Param('id') id: string, @Body() data: Prisma.SenatorUpdateInput): Promise<Senator> {
+  async updateSenator(@Param('id') id: string, @Body() data: Prisma.SenatorUpdateInput, @Req() req: Request): Promise<Senator> {
+    if (req.user?.role !== 'admin' && req.user?.role !== 'edit') {
+      throw new ForbiddenException('Access denied');
+    }
     return this.senatorService.update(Number(id), data);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async deleteSenator(@Param('id') id: string): Promise<Senator> {
+  async deleteSenator(@Param('id') id: string, @Req() req: Request): Promise<Senator> {
+    if (req.user?.role !== 'admin' && req.user?.role !== 'edit') {
+      throw new ForbiddenException('Access denied');
+    }
     return this.senatorService.delete(Number(id));
   }
 }
