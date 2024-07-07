@@ -1,11 +1,12 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DB")
+}
+
 generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
 
 model Senator {
   id               Int              @id @default(autoincrement())

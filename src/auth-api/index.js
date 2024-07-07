@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 const generateToken = (user) => {
-    console.log('Generating token for user:', user); // Adicionar log para verificar o usuário
+    console.log('Generating token for user:', user);
     return jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
         expiresIn: '1h'
     });

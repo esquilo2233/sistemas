@@ -6,7 +6,7 @@ npm install;
 npx prisma generate;
 
 
-npm run clean;
+# node clean.ts;
 
 
 

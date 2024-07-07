@@ -3,10 +3,9 @@ import { Module } from '@nestjs/common';
 import { SenatorController } from './senator.controller';
 import { SenatorService } from './senator.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @Module({
   controllers: [SenatorController],
-  providers: [SenatorService, PrismaService, JwtAuthGuard],
+  providers: [SenatorService, PrismaService],
 })
 export class SenatorModule {}
