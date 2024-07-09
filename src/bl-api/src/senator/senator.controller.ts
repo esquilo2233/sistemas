@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Req } from '@nestjs/common';
 import { SenatorService } from './senator.service';
-import { Senator, Prisma } from '@prisma/client';
+import { Senator } from '@prisma/client';
 import { CreateSenatorDto } from './dto/create-senator.dto';
 import { Request } from 'express';
 
@@ -13,19 +13,21 @@ export class SenatorController {
     return this.senatorService.findAll();
   }
 
- 
+  @Get(':id')
+  async getSenatorById(@Param('id') id: string): Promise<Senator> {
+    return this.senatorService.findById(Number(id));
+  }
+
   @Post()
   async createSenator(@Body() data: CreateSenatorDto, @Req() req: Request): Promise<Senator> {
     return this.senatorService.create(data);
   }
 
-  
   @Put(':id')
-  async updateSenator(@Param('id') id: string, @Body() data: Prisma.SenatorUpdateInput, @Req() req: Request): Promise<Senator> {
+  async updateSenator(@Param('id') id: string, @Body() data: CreateSenatorDto, @Req() req: Request): Promise<Senator> {
     return this.senatorService.update(Number(id), data);
   }
 
- 
   @Delete(':id')
   async deleteSenator(@Param('id') id: string, @Req() req: Request): Promise<Senator> {
     return this.senatorService.delete(Number(id));

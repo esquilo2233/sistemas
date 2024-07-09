@@ -8,6 +8,7 @@ class PersonDto {
 
   @IsOptional()
   @IsDate()
+  @Type(() => Date)
   birthday?: Date;
 
   @IsOptional()
@@ -63,24 +64,6 @@ class PersonDto {
   youtubeid?: string;
 }
 
-class ExtraDto {
-  @IsOptional()
-  @IsString()
-  address?: string;
-
-  @IsOptional()
-  @IsString()
-  contact_form?: string;
-
-  @IsOptional()
-  @IsString()
-  office?: string;
-
-  @IsOptional()
-  @IsString()
-  rss_url?: string;
-}
-
 export class CreateSenatorDto {
   @IsOptional()
   @IsString()
@@ -104,6 +87,7 @@ export class CreateSenatorDto {
 
   @IsOptional()
   @IsDate()
+  @Type(() => Date)
   enddate?: Date;
 
   @IsOptional()
@@ -136,6 +120,7 @@ export class CreateSenatorDto {
 
   @IsOptional()
   @IsDate()
+  @Type(() => Date)
   startdate?: Date;
 
   @IsOptional()
@@ -153,8 +138,4 @@ export class CreateSenatorDto {
   @IsOptional()
   @IsString()
   website?: string;
-
-  @ValidateNested()
-  @Type(() => ExtraDto)
-  extra: ExtraDto;
 }

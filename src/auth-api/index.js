@@ -2,6 +2,7 @@ require('dotenv').config(); // Carregar variáveis de ambiente do arquivo .env
 
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const knexConfig = require('./knexfile').db;
 const knex = require('knex')(knexConfig);
 const bcrypt = require('bcryptjs');
@@ -11,6 +12,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 const generateToken = (user) => {
     console.log('Generating token for user:', user);
@@ -19,12 +21,14 @@ const generateToken = (user) => {
     });
 };
 
-// Middleware para verificar token JWT
+// Middleware para verificar token JWT no cookie e nos headers
 const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (!token) {
-        console.log('No token provided');
+    const token = req.cookies.token || req.headers['authorization']?.split(' ')[1];
+    const email = req.cookies.email;
+    const role = req.cookies.role;
+
+    if (!token || !email || !role) {
+        console.log('No token or user information provided');
         return res.sendStatus(401);
     }
 
@@ -33,8 +37,8 @@ const authenticateToken = (req, res, next) => {
             console.log('Token verification failed:', err);
             return res.sendStatus(403);
         }
-        req.user = user;
-        console.log('Authenticated user:', user); // Adicionar log para verificar o usuário autenticado
+        req.user = { id: user.id, email, role };
+        console.log('Authenticated user:', req.user); // Adicionar log para verificar o usuário autenticado
         next();
     });
 };
@@ -69,7 +73,7 @@ app.post('/register', authenticateToken, isAdmin, async (req, res) => {
             role
         }).returning('*');
 
-        res.status(201).json(newUser);
+        res.status(201).json('User registred');
     } catch (error) {
         console.error(error);
         res.status(500).send('Error registering user');
@@ -96,8 +100,28 @@ app.post('/login', async (req, res) => {
         // Gera o token JWT
         const token = generateToken(user);
 
-        // Retornar o token JWT e os dados do usuário
-        res.json({ token, user });
+        // Definir o cookie com o token JWT e outras informações
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // Usar cookies seguros em produção
+            sameSite: 'strict', // ou 'lax'
+            maxAge: 3600000 // 1 hora em milissegundos
+        });
+
+        res.cookie('email', email, {
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 3600000
+        });
+
+        res.cookie('role', user.role, {
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 3600000
+        });
+
+        // Retornar os dados do usuário (sem o token no corpo da resposta)
+        res.json({ user });
     } catch (error) {
         console.error(error);
         res.status(500).send('Error logging in');
@@ -130,7 +154,7 @@ app.post('/registeradmin', authenticateToken, isAdmin, async (req, res) => {
             role
         }).returning('*');
 
-        res.status(201).json(newUser);
+        res.status(201).json('User is now registed');
     } catch (error) {
         console.error(error);
         res.status(500).send('Error registering user');
