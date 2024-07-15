@@ -1,4 +1,6 @@
-import { IsString, IsBoolean, IsOptional, IsDate, IsInt, ValidateNested, IsArray } from 'class-validator';
+import {
+  IsString, IsBoolean, IsOptional, IsDate, IsInt, ValidateNested, IsArray,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class PersonDto {
@@ -68,10 +70,6 @@ export class CreateSenatorDto {
   @IsOptional()
   @IsString()
   caucus?: string;
-
-  @IsArray()
-  @IsInt({ each: true })
-  congress_numbers: number[];
 
   @IsOptional()
   @IsBoolean()

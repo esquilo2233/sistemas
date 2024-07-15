@@ -19,8 +19,8 @@ export class SenatorController {
   }
 
   @Post()
-  async createSenator(@Body() data: CreateSenatorDto, @Req() req: Request): Promise<Senator> {
-    return this.senatorService.create(data);
+  async create(@Body() createSenatorDto: CreateSenatorDto, @Req() req: Request) {
+    return this.senatorService.create(createSenatorDto, req);
   }
 
   @Put(':id')
