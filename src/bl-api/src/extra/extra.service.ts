@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma, Extra } from '@prisma/client';
 import { CreateExtraDto } from './dto/create-extra.dto';
@@ -7,24 +7,37 @@ import { CreateExtraDto } from './dto/create-extra.dto';
 export class ExtraService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(): Promise<Extra[]> {
+  async findAll(req: Request): Promise<Extra[]> {
     return this.prisma.extra.findMany({
       include: {
-        senator: true,
+        senator: false,
       },
     });
+  }
+
+  async findById(id: number, req: Request): Promise<Extra> {
+    const extra = await this.prisma.extra.findUnique({
+      where: { id },
+      include: {
+        senator: false,
+      },
+    });
+    if (!extra) {
+      throw new NotFoundException(`Extra with ID ${id} not found`);
+    }
+    return extra;
   }
 
   async create(data: Prisma.ExtraCreateInput): Promise<Extra> {
     return this.prisma.extra.create({
       data,
       include: {
-        senator: true,
+        senator: false,
       },
     });
   }
 
-  async createWithSenatorId(dto: CreateExtraDto): Promise<Extra> {
+  async createWithSenatorId(dto: CreateExtraDto, req: Request): Promise<Extra> {
     const { senatorId, ...rest } = dto;
     return this.prisma.extra.create({
       data: {
@@ -34,26 +47,26 @@ export class ExtraService {
         },
       },
       include: {
-        senator: true,
+        senator: false,
       },
     });
   }
 
-  async update(id: number, data: Prisma.ExtraUpdateInput): Promise<Extra> {
+  async update(id: number, data: Prisma.ExtraUpdateInput, req: Request): Promise<Extra> {
     return this.prisma.extra.update({
       where: { id },
       data,
       include: {
-        senator: true,
+        senator: false,
       },
     });
   }
 
-  async delete(id: number): Promise<Extra> {
+  async delete(id: number, req: Request): Promise<Extra> {
     return this.prisma.extra.delete({
       where: { id },
       include: {
-        senator: true,
+        senator: false,
       },
     });
   }

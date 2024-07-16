@@ -5,7 +5,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const knexConfig = require('./knexfile').db;
 const knex = require('knex')(knexConfig);
-const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
 const app = express();
@@ -64,7 +64,7 @@ app.post('/register', authenticateToken, isAdmin, async (req, res) => {
         }
 
         // Encriptação da password
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await crypto.createHash('sha256').update(password).digest('hex');
 
         // Inserir o novo usuário
         const [newUser] = await knex('users').insert({
@@ -92,8 +92,8 @@ app.post('/login', async (req, res) => {
         }
 
         // Verificar a senha
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) {
+        const hashedPassword = await crypto.createHash('sha256').update(password).digest('hex');
+        if (hashedPassword !== user.password) {
             return res.status(400).json({ error: 'Invalid email or password' });
         }
 
@@ -145,8 +145,8 @@ app.post('/registeradmin', authenticateToken, isAdmin, async (req, res) => {
         }
 
         // Encriptação da password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
+        const hashedPassword = await crypto.createHash('sha256').update(password).digest('hex');
+        console.log(hashedPassword)
         // Inserir o novo usuário
         const [newUser] = await knex('users').insert({
             email,

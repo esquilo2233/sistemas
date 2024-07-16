@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma, CongressNumber } from '@prisma/client';
 import { CreateCongressDto } from './dto/create-congress.dto';
@@ -10,16 +10,26 @@ export class CongressService {
   async findAll(): Promise<CongressNumber[]> {
     return this.prisma.congressNumber.findMany({
       include: {
-        senator: true,
+        senator: false,
       },
     });
   }
 
+  async findById(id: number): Promise<CongressNumber> {
+    const congressNumber = await this.prisma.congressNumber.findUnique({
+      where: { id },
+    });
+    if (!congressNumber) {
+      throw new NotFoundException(`CongressNumber with ID ${id} not found`);
+    }
+    return congressNumber;
+  }
+  
   async create(data: Prisma.CongressNumberCreateInput): Promise<CongressNumber> {
     return this.prisma.congressNumber.create({
       data,
       include: {
-        senator: true,
+        senator: false,
       },
     });
   }
@@ -34,7 +44,7 @@ export class CongressService {
         },
       },
       include: {
-        senator: true,
+        senator: false,
       },
     });
   }
@@ -44,7 +54,7 @@ export class CongressService {
       where: { id },
       data,
       include: {
-        senator: true,
+        senator: false,
       },
     });
   }
@@ -53,7 +63,7 @@ export class CongressService {
     return this.prisma.congressNumber.delete({
       where: { id },
       include: {
-        senator: true,
+        senator: false,
       },
     });
   }
