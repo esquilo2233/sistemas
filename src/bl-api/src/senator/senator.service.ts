@@ -8,22 +8,30 @@ import { Request } from 'express';
 export class SenatorService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(): Promise<Senator[]> {
-    return this.prisma.senator.findMany();
+  async findAll( @Req() req: Request): Promise<Senator[]> {
+    
+    if (req.cookies?.token) {
+      throw new UnauthorizedException('Operation not authorized');
+    }else{
+      return this.prisma.senator.findMany();
+    }
+    
   }
 
-  async findById(id: number): Promise<Senator> {
-    return this.prisma.senator.findUnique({ where: { id } });
+
+  async findById(id: number, @Req() req: Request): Promise<Senator> {
+    console.log('Cookies:', req.cookies); // Adicione esta linha para depuração
+    
+    if (req.cookies?.token) {
+      throw new UnauthorizedException('Operation not authorized');
+    }else{
+      return this.prisma.senator.findUnique({ where: { id } });
+    }
   }
 
   async create(data: CreateSenatorDto, @Req() req: Request): Promise<Senator> {
     console.log('Cookies:', req.cookies); // Adicione esta linha para depuração
-    const createdByEmail = req.cookies?.email;
-
-    if (!createdByEmail) {
-      throw new UnauthorizedException('Email not found in cookies');
-    }
-    
+  
     if (req.cookies?.role !== 'admin' && req.cookies?.token) {
       throw new UnauthorizedException('Operation not authorized');
     }
@@ -68,16 +76,28 @@ export class SenatorService {
     }
   }
 
-  async update(id: number, data: Prisma.SenatorUpdateInput): Promise<Senator> {
-    return this.prisma.senator.update({
-      where: { id },
-      data,
-    });
+  async update(id: number, data: Prisma.SenatorUpdateInput, @Req() req: Request): Promise<Senator> {
+    console.log('Cookies:', req.cookies); // Adicione esta linha para depuração
+    
+    if (req.cookies?.role !=='admin' || req.cookies?.role !=='edit' &&req.cookies?.token) {
+      throw new UnauthorizedException('Operation not authorized');
+    }else{
+      return this.prisma.senator.update({
+        where: { id },
+        data,
+      });
+    }
   }
 
-  async delete(id: number): Promise<Senator> {
-    return this.prisma.senator.delete({
-      where: { id },
-    });
+  async delete(id: number, @Req() req: Request): Promise<Senator> {
+    console.log('Cookies:', req.cookies); // Adicione esta linha para depuração
+    
+    if (req.cookies?.role !=='admin' || req.cookies?.role !=='edit' &&req.cookies?.token) {
+      throw new UnauthorizedException('Operation not authorized');
+    }else{
+      return this.prisma.senator.delete({
+        where: { id },
+      });
+    }
   }
 }
