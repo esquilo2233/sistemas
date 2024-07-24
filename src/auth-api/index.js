@@ -103,21 +103,9 @@ app.post('/login', async (req, res) => {
         // Definir o cookie com o token JWT e outras informações
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // Usar cookies seguros em produção
+            secure: process.env.NODE_ENV, // Usar cookies seguros em produção
             sameSite: 'strict', // ou 'lax'
             maxAge: 3600000 // 1 hora em milissegundos
-        });
-
-        res.cookie('email', email, {
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 3600000
-        });
-
-        res.cookie('role', user.role, {
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 3600000
         });
 
         // Retornar os dados do usuário (sem o token no corpo da resposta)

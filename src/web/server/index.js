@@ -1,18 +1,23 @@
-const path = require("path");
-const express = require("express");
+const path = require('path');
+const express = require('express');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
 const app = express();
 
-// add middlewares
-app.use(express.static(path.join(__dirname, "..", "build")));
-app.use(express.static("public"));
+// Configuração do Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+// Outros middlewares e configurações do servidor
+app.use(express.static(path.join(__dirname, '..', 'build')));
+app.use(express.static('public'));
 
 app.use((req, res, next) => {
-    res.sendFile(path.join(__dirname, "..", "build", "index.html"));
+  res.sendFile(path.join(__dirname, '..', 'build', 'index.html'));
 });
 
-const port = parseInt(process?.argv[2] || 3000);
-
-// start express server on port 5000
+// Iniciar o servidor na porta 8081
+const port = 8081;
 app.listen(port, () => {
-    console.log(`server started on port ${port}`);
+  console.log(`Server started on port ${port}`);
 });

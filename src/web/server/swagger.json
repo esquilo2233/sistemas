@@ -1,0 +1,23 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "version": "1.0.0",
+      "title": "API Documentation",
+      "description": "API documentation for the project"
+    },
+    "host": "localhost:8081",
+    "basePath": "/",
+    "paths": {
+      "/congress": {
+        "get": {
+          "summary": "Get all congress numbers",
+          "responses": {
+            "200": {
+              "description": "Successful operation"
+            }
+          }
+        }
+      }
+    }
+  }
+  

@@ -6,6 +6,15 @@ import { Request } from 'express';
 
 @Injectable()
 export class SenatorService {
+  createSenator(dto: CreateSenatorDto, createdBy: any): any {
+    throw new Error('Method not implemented.');
+  }
+  updateSenator(arg0: number, dto: CreateSenatorDto): any {
+    throw new Error('Method not implemented.');
+  }
+  deleteSenator(arg0: number): any {
+    throw new Error('Method not implemented.');
+  }
   constructor(private prisma: PrismaService) {}
 
   async findAll( @Req() req: Request): Promise<Senator[]> {

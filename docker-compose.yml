@@ -27,7 +27,7 @@ services:
 
   bl-db:
     container_name: bl-db
-    build: docker/images/db
+    build: docker/images/db-bl
     volumes:
       - bl_data:/var/lib/postgresql/data/
     ports:
