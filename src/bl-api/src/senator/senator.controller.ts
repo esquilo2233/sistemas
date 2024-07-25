@@ -3,8 +3,9 @@ import { SenatorService } from './senator.service';
 import { Senator } from '@prisma/client';
 import { CreateSenatorDto } from './dto/create-senator.dto';
 import { Request } from 'express';
-import { JwtAuthGuardForGet } from '../auth/jwt-auth-guard.for.get';
-import { JwtAuthGuardForPutDeletePost } from '../auth/jwt-auth-guard.for.putdeletepost';
+import { JwtAuthGuardForGet } from 'src/auth/jwt-auth-guard.for.get';
+import { JwtAuthGuardForDelete } from 'src/auth/jwt-auth-guard.forDelete';
+import { JwtAuthGuardForEdit } from 'src/auth/jwt-auth-guard.forEdit';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiCookieAuth } from '@nestjs/swagger';
 
 @ApiTags('senator')
@@ -37,7 +38,7 @@ export class SenatorController {
 
   @ApiOperation({ summary: 'Create a new senator' })
   @ApiResponse({ status: 201, description: 'Senator created successfully.' })
-  @UseGuards(JwtAuthGuardForPutDeletePost)
+  @UseGuards(JwtAuthGuardForEdit)
   @Post()
   async create(@Body() createSenatorDto: CreateSenatorDto, @Req() req: Request) {
     return this.senatorService.create(createSenatorDto, req);
@@ -46,7 +47,7 @@ export class SenatorController {
   @ApiOperation({ summary: 'Update an existing senator' })
   @ApiResponse({ status: 200, description: 'Senator updated successfully.' })
   @ApiResponse({ status: 404, description: 'Senator not found.' })
-  @UseGuards(JwtAuthGuardForPutDeletePost)
+  @UseGuards(JwtAuthGuardForEdit)
   @Put(':id')
   async updateSenator(@Param('id') id: string, @Body() data: CreateSenatorDto, @Req() req: Request): Promise<Senator> {
     return this.senatorService.update(Number(id), data, req);
@@ -55,7 +56,7 @@ export class SenatorController {
   @ApiOperation({ summary: 'Delete a senator by ID' })
   @ApiResponse({ status: 200, description: 'Senator deleted successfully.' })
   @ApiResponse({ status: 404, description: 'Senator not found.' })
-  @UseGuards(JwtAuthGuardForPutDeletePost)
+  @UseGuards(JwtAuthGuardForDelete)
   @Delete(':id')
   async deleteSenator(@Param('id') id: string, @Req() req: Request): Promise<Senator> {
     return this.senatorService.delete(Number(id), req);

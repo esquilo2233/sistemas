@@ -75,7 +75,7 @@ const JSONObserver = {
                 rss_url: extra.rss_url, created_by: 'importer', created_at: new Date(), updated_at: new Date()
             });
 
-            console.log(`Imported data for senator: ${person.firstname} ${person.lastname}`);
+            console.log(`Imported data: ${person.firstname} ${person.lastname}`);
         } catch (error) {
             console.error(`Error inserting data into the database: ${error}`);
         }

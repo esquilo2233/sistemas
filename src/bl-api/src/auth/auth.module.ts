@@ -3,7 +3,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtAuthGuardForGet } from './jwt-auth-guard.for.get';
-import { JwtAuthGuardForPutDeletePost } from './jwt-auth-guard.for.putdeletepost';
+import { JwtAuthGuardForDelete } from './jwt-auth-guard.forDelete';
+import { JwtAuthGuardForEdit } from './jwt-auth-guard.forEdit';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { JwtAuthGuardForPutDeletePost } from './jwt-auth-guard.for.putdeletepost
       inject: [ConfigService],
     }),
   ],
-  providers: [ JwtAuthGuardForGet, JwtAuthGuardForPutDeletePost],
-  exports: [JwtModule, PassportModule, JwtAuthGuardForGet, JwtAuthGuardForPutDeletePost],
+  providers: [ JwtAuthGuardForGet, JwtAuthGuardForDelete,JwtAuthGuardForEdit],
+  exports: [JwtModule, PassportModule, JwtAuthGuardForGet, JwtAuthGuardForDelete,JwtAuthGuardForEdit],
 })
 export class AuthModule {}

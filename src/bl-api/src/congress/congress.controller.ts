@@ -2,8 +2,9 @@ import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Req, NotFou
 import { CongressService } from './congress.service';
 import { Prisma, CongressNumber } from '@prisma/client';
 import { CreateCongressDto } from './dto/create-congress.dto';
-import { JwtAuthGuardForPutDeletePost } from 'src/auth/jwt-auth-guard.for.putdeletepost';
+import { JwtAuthGuardForEdit} from 'src/auth/jwt-auth-guard.forEdit';
 import { JwtAuthGuardForGet } from 'src/auth/jwt-auth-guard.for.get';
+import { JwtAuthGuardForDelete } from 'src/auth/jwt-auth-guard.forDelete';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiCookieAuth } from '@nestjs/swagger';
 
 @ApiTags('congress')
@@ -36,7 +37,7 @@ export class CongressController {
 
   @ApiOperation({ summary: 'Create a new congress number' })
   @ApiResponse({ status: 201, description: 'Congress number created successfully.' })
-  @UseGuards(JwtAuthGuardForPutDeletePost)
+  @UseGuards(JwtAuthGuardForEdit)
   @Post()
   async createCongressNumber(@Body() dto: CreateCongressDto, @Req() req): Promise<CongressNumber> {
     return this.congressService.createWithSenatorId(dto);
@@ -45,7 +46,7 @@ export class CongressController {
   @ApiOperation({ summary: 'Update an existing congress number' })
   @ApiResponse({ status: 200, description: 'Congress number updated successfully.' })
   @ApiResponse({ status: 404, description: 'Congress number not found.' })
-  @UseGuards(JwtAuthGuardForPutDeletePost)
+  @UseGuards(JwtAuthGuardForEdit)
   @Put(':id')
   async updateCongressNumber(@Param('id') id: string, @Body() data: Prisma.CongressNumberUpdateInput, @Req() req): Promise<CongressNumber> {
     const updatedCongressNumber = await this.congressService.update(Number(id), data);
@@ -58,7 +59,7 @@ export class CongressController {
   @ApiOperation({ summary: 'Delete a congress number by ID' })
   @ApiResponse({ status: 200, description: 'Congress number deleted successfully.' })
   @ApiResponse({ status: 404, description: 'Congress number not found.' })
-  @UseGuards(JwtAuthGuardForPutDeletePost)
+  @UseGuards(JwtAuthGuardForDelete)
   @Delete(':id')
   async deleteCongressNumber(@Param('id') id: string, @Req() req): Promise<CongressNumber> {
     const deletedCongressNumber = await this.congressService.delete(Number(id));

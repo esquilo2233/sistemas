@@ -1,5 +1,4 @@
-require('dotenv').config(); // Carregar variáveis de ambiente do arquivo .env
-
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -21,9 +20,9 @@ const generateToken = (user) => {
     });
 };
 
-// Middleware para verificar token JWT no cookie e nos headers
+// Middleware para verificar token JWT no cookie
 const authenticateToken = (req, res, next) => {
-    const token = req.cookies.token || req.headers['authorization']?.split(' ')[1];
+    const token = req.cookies.token;
     const email = req.cookies.email;
     const role = req.cookies.role;
 
@@ -53,6 +52,12 @@ const isAdmin = (req, res, next) => {
     next();
 };
 
+// Rota protegida para verificar sessão
+app.get('/session', authenticateToken, (req, res) => {
+    res.json({ user: req.user });
+});
+
+
 app.post('/register', authenticateToken, isAdmin, async (req, res) => {
     try {
         const { email, password, role } = req.body;
@@ -80,18 +85,48 @@ app.post('/register', authenticateToken, isAdmin, async (req, res) => {
     }
 });
 
-// Rota de login
+app.get('/users', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        
+        const users = await knex('users').select('id', 'email', 'role');
+
+        
+        res.json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error retrieving users');
+    }
+});
+
+app.delete('/users/:id', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        ''
+        const user = await knex('users').where({ id }).first();
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        await knex('users').where({ id }).del();
+
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error deleting user');
+    }
+});
+
+
 app.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Verificar se o user existe
         const user = await knex('users').where({ email }).first();
         if (!user) {
             return res.status(400).json({ error: 'Invalid email or password' });
         }
 
-        // Verificar a senha
+       
         const hashedPassword = await crypto.createHash('sha256').update(password).digest('hex');
         if (hashedPassword !== user.password) {
             return res.status(400).json({ error: 'Invalid email or password' });
@@ -103,9 +138,9 @@ app.post('/login', async (req, res) => {
         // Definir o cookie com o token JWT e outras informações
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV, // Usar cookies seguros em produção
-            sameSite: 'strict', // ou 'lax'
-            maxAge: 3600000 // 1 hora em milissegundos
+            secure: process.env.NODE_ENV, 
+            sameSite: 'strict',
+            maxAge: 3600000 
         });
 
         // Retornar os dados do usuário (sem o token no corpo da resposta)
@@ -116,10 +151,6 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Rota protegida para verificar sessão
-app.get('/session', authenticateToken, (req, res) => {
-    res.json({ user: req.user });
-});
 
 // Nova rota para administradores registrarem usuários com qualquer função
 app.post('/registeradmin', authenticateToken, isAdmin, async (req, res) => {

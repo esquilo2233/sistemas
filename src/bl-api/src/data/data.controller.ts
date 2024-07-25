@@ -2,9 +2,10 @@ import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Req, NotFou
 import { DataService } from './data.service';
 import { CreateDataDto } from './dto/create-data.dto';
 import { JwtAuthGuardForGet } from '../auth/jwt-auth-guard.for.get';
-import { JwtAuthGuardForPutDeletePost } from '../auth/jwt-auth-guard.for.putdeletepost';
+import { JwtAuthGuardForDelete } from '../auth/jwt-auth-guard.forDelete';
 import { Request } from 'express';
 import { ApiBearerAuth, ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuardForEdit } from 'src/auth/jwt-auth-guard.forEdit';
 
 @ApiTags('data')
 @ApiBearerAuth()
@@ -36,7 +37,7 @@ export class DataController {
 
   @ApiOperation({ summary: 'Create new data' })
   @ApiResponse({ status: 201, description: 'Data created successfully.' })
-  @UseGuards(JwtAuthGuardForPutDeletePost)
+  @UseGuards(JwtAuthGuardForEdit)
   @Post()
   async createData(@Body() dto: CreateDataDto, @Req() req: Request): Promise<any> {
     const createdBy = req.cookies.email;
@@ -46,7 +47,7 @@ export class DataController {
   @ApiOperation({ summary: 'Update existing data' })
   @ApiResponse({ status: 200, description: 'Data updated successfully.' })
   @ApiResponse({ status: 404, description: 'Data not found.' })
-  @UseGuards(JwtAuthGuardForPutDeletePost)
+  @UseGuards(JwtAuthGuardForEdit)
   @Put(':id')
   async updateData(@Param('id') id: string, @Body() dto: CreateDataDto, @Req() req: Request): Promise<any> {
     return this.dataService.updateData(Number(id), dto);
@@ -55,7 +56,7 @@ export class DataController {
   @ApiOperation({ summary: 'Delete data by ID' })
   @ApiResponse({ status: 200, description: 'Data deleted successfully.' })
   @ApiResponse({ status: 404, description: 'Data not found.' })
-  @UseGuards(JwtAuthGuardForPutDeletePost)
+  @UseGuards(JwtAuthGuardForDelete)
   @Delete(':id')
   async deleteData(@Param('id') id: string, @Req() req: Request): Promise<any> {
     return this.dataService.deleteData(Number(id));

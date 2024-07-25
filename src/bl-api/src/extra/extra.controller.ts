@@ -3,7 +3,8 @@ import { ExtraService } from './extra.service';
 import { Prisma, Extra } from '@prisma/client';
 import { CreateExtraDto } from './dto/create-extra.dto';
 import { JwtAuthGuardForGet } from '../auth/jwt-auth-guard.for.get';
-import { JwtAuthGuardForPutDeletePost } from '../auth/jwt-auth-guard.for.putdeletepost';
+import { JwtAuthGuardForDelete } from '../auth/jwt-auth-guard.forDelete';
+import { JwtAuthGuardForEdit } from 'src/auth/jwt-auth-guard.forEdit';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiCookieAuth } from '@nestjs/swagger';
 
 @ApiTags('extra')
@@ -36,7 +37,7 @@ export class ExtraController {
 
   @ApiOperation({ summary: 'Create a new extra' })
   @ApiResponse({ status: 201, description: 'Extra created successfully.' })
-  @UseGuards(JwtAuthGuardForPutDeletePost)
+  @UseGuards(JwtAuthGuardForEdit)
   @Post()
   async createExtra(@Body() dto: CreateExtraDto, @Req() req: Request): Promise<Extra> {
     return this.extraService.createWithSenatorId(dto, req);
@@ -45,7 +46,7 @@ export class ExtraController {
   @ApiOperation({ summary: 'Update an existing extra' })
   @ApiResponse({ status: 200, description: 'Extra updated successfully.' })
   @ApiResponse({ status: 404, description: 'Extra not found.' })
-  @UseGuards(JwtAuthGuardForPutDeletePost)
+  @UseGuards(JwtAuthGuardForEdit)
   @Put(':id')
   async updateExtra(@Param('id') id: string, @Body() data: Prisma.ExtraUpdateInput, @Req() req: Request): Promise<Extra> {
     return this.extraService.update(Number(id), data, req);
@@ -54,7 +55,7 @@ export class ExtraController {
   @ApiOperation({ summary: 'Delete an extra by ID' })
   @ApiResponse({ status: 200, description: 'Extra deleted successfully.' })
   @ApiResponse({ status: 404, description: 'Extra not found.' })
-  @UseGuards(JwtAuthGuardForPutDeletePost)
+  @UseGuards(JwtAuthGuardForEdit)
   @Delete(':id')
   async deleteExtra(@Param('id') id: string, @Req() req: Request): Promise<Extra> {
     return this.extraService.delete(Number(id), req);
