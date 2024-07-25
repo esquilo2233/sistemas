@@ -23,11 +23,9 @@ const generateToken = (user) => {
 // Middleware para verificar token JWT no cookie
 const authenticateToken = (req, res, next) => {
     const token = req.cookies.token;
-    const email = req.cookies.email;
-    const role = req.cookies.role;
 
-    if (!token || !email || !role) {
-        console.log('No token or user information provided');
+    if (!token) {
+        console.log('No token provided');
         return res.sendStatus(401);
     }
 
@@ -36,7 +34,7 @@ const authenticateToken = (req, res, next) => {
             console.log('Token verification failed:', err);
             return res.sendStatus(403);
         }
-        req.user = { id: user.id, email, role };
+        req.user = user;
         console.log('Authenticated user:', req.user); // Adicionar log para verificar o usuário autenticado
         next();
     });
@@ -52,13 +50,8 @@ const isAdmin = (req, res, next) => {
     next();
 };
 
-// Rota protegida para verificar sessão
-app.get('/session', authenticateToken, (req, res) => {
-    res.json({ user: req.user });
-});
-
-
-app.post('/register', authenticateToken, isAdmin, async (req, res) => {
+// Rota para registrar novos usuários (aberta)
+app.post('/register', async (req, res) => {
     try {
         const { email, password, role } = req.body;
 
@@ -75,33 +68,32 @@ app.post('/register', authenticateToken, isAdmin, async (req, res) => {
         const [newUser] = await knex('users').insert({
             email,
             password: hashedPassword,
-            role
+            role : 'view'
         }).returning('*');
 
-        res.status(201).json('User registred');
+        res.status(201).json({ user: newUser });
     } catch (error) {
         console.error(error);
         res.status(500).send('Error registering user');
     }
 });
 
+// Rota para obter todos os usuários (apenas administradores)
 app.get('/users', authenticateToken, isAdmin, async (req, res) => {
     try {
-        
         const users = await knex('users').select('id', 'email', 'role');
-
-        
-        res.json(users);
+        res.status(200).json(users);
     } catch (error) {
         console.error(error);
         res.status(500).send('Error retrieving users');
     }
 });
 
+// Rota para excluir um usuário pelo ID (apenas administradores)
 app.delete('/users/:id', authenticateToken, isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        ''
+
         const user = await knex('users').where({ id }).first();
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
@@ -116,7 +108,7 @@ app.delete('/users/:id', authenticateToken, isAdmin, async (req, res) => {
     }
 });
 
-
+// Rota de login
 app.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -126,24 +118,20 @@ app.post('/login', async (req, res) => {
             return res.status(400).json({ error: 'Invalid email or password' });
         }
 
-       
         const hashedPassword = await crypto.createHash('sha256').update(password).digest('hex');
         if (hashedPassword !== user.password) {
             return res.status(400).json({ error: 'Invalid email or password' });
         }
 
-        // Gera o token JWT
         const token = generateToken(user);
 
-        // Definir o cookie com o token JWT e outras informações
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV, 
+            secure: process.env.NODE_ENV === 'production', 
             sameSite: 'strict',
             maxAge: 3600000 
         });
 
-        // Retornar os dados do usuário (sem o token no corpo da resposta)
         res.json({ user });
     } catch (error) {
         console.error(error);
@@ -151,33 +139,36 @@ app.post('/login', async (req, res) => {
     }
 });
 
-
-// Nova rota para administradores registrarem usuários com qualquer função
+// Rota para administradores registrarem usuários com qualquer função (apenas administradores)
 app.post('/registeradmin', authenticateToken, isAdmin, async (req, res) => {
     try {
         const { email, password, role } = req.body;
 
-        // Verificar se o usuário já existe
         const existingUser = await knex('users').where({ email }).first();
         if (existingUser) {
             return res.status(400).json({ error: 'User already exists' });
         }
 
-        // Encriptação da password
         const hashedPassword = await crypto.createHash('sha256').update(password).digest('hex');
         console.log(hashedPassword)
-        // Inserir o novo usuário
+
         const [newUser] = await knex('users').insert({
             email,
             password: hashedPassword,
             role
         }).returning('*');
 
-        res.status(201).json('User is now registed');
+        res.status(201).json({ user: newUser });
     } catch (error) {
         console.error(error);
         res.status(500).send('Error registering user');
     }
+});
+
+// Rota para retornar a sessão do usuário autenticado
+app.get('/session', authenticateToken, (req, res) => {
+    const token = req.cookies.token;
+    res.status(200).json({ user: req.user,token });
 });
 
 const PORT = process.env.PORT || 3000;
