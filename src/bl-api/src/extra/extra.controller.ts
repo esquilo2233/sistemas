@@ -55,7 +55,7 @@ export class ExtraController {
   @ApiOperation({ summary: 'Delete an extra by ID' })
   @ApiResponse({ status: 200, description: 'Extra deleted successfully.' })
   @ApiResponse({ status: 404, description: 'Extra not found.' })
-  @UseGuards(JwtAuthGuardForEdit)
+  @UseGuards(JwtAuthGuardForDelete)
   @Delete(':id')
   async deleteExtra(@Param('id') id: string, @Req() req: Request): Promise<Extra> {
     return this.extraService.delete(Number(id), req);
